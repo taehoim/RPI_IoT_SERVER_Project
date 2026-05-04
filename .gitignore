@@ -1,0 +1,67 @@
+# Build artifacts
+hal/build/
+hal/*.so
+hal/*.o
+hal/tests/test_*
+gateway/bin/
+gateway/gateway-agent
+*.exe
+
+# Go
+vendor/
+*.test
+*.out
+.cover/
+
+# C
+*.a
+*.lo
+*.la
+.deps/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Local config / secrets
+*.local.yaml
+*.local.json
+.env
+.env.local
+secrets/
+
+# Logs / runtime
+*.log
+gateway-agent.log
+local.db
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Test artifacts
+coverage.html
+coverage.out
+testdata/runtime/
+
+# Python (simulator)
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Local Claude / agent settings (per-machine, not part of project)
+.claude/
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Placeholder for git init
+.git_placeholder/

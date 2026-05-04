@@ -1,0 +1,28 @@
+{
+  "name": "RS485 CO2 센서 (NDIR)",
+  "vendor": "Generic",
+  "model": "CO2-NDIR-RS485-01",
+  "description": "분리형 모듈 구성 시 사용. NDIR 방식 CO2 센서 (Senseair S8 / Winsen MH-Z19 의 RS485 변환). 0-5000 ppm.",
+  "protocol": "modbus_rtu",
+  "interface_type": "rs485",
+  "default_polling_interval_sec": 10,
+  "connection": {
+    "baudrate": 9600,
+    "parity": "N",
+    "data_bits": 8,
+    "stop_bits": 1
+  },
+  "measurements": [
+    {
+      "key": "carbon_dioxide",
+      "display_name": "이산화탄소 CO2",
+      "unit": "ppm",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 0, "length": 1 },
+      "scale": 1.0, "min": 0, "max": 5000,
+      "visualization": "line_chart",
+      "display_group": "air_quality",
+      "order": 1
+    }
+  ]
+}

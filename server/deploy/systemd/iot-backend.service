@@ -1,0 +1,35 @@
+[Unit]
+Description=IoT Gateway Backend API (FastAPI)
+Documentation=file:///opt/iot-platform/server/README.md
+After=network-online.target postgresql.service vernemq.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=iot
+Group=iot
+WorkingDirectory=/opt/iot-platform/server
+EnvironmentFile=/etc/iot-platform/backend.env
+ExecStart=/opt/iot-platform/server/.venv/bin/iot-backend
+
+WatchdogSec=30
+Restart=always
+RestartSec=5
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/iot-platform /var/log/iot-platform
+
+LimitNOFILE=4096
+MemoryMax=512M
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=iot-backend
+
+[Install]
+WantedBy=multi-user.target

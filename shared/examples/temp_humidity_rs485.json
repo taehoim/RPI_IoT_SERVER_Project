@@ -1,0 +1,39 @@
+{
+  "name": "RS485 온습도 센서",
+  "vendor": "Generic",
+  "model": "TH-RS485-01",
+  "description": "분리형 모듈 구성 시 사용. 온도(register 0)+습도(register 1) 동시 측정. SHT3x계열 RS485 변환 모듈 호환.",
+  "protocol": "modbus_rtu",
+  "interface_type": "rs485",
+  "default_polling_interval_sec": 10,
+  "connection": {
+    "baudrate": 9600,
+    "parity": "N",
+    "data_bits": 8,
+    "stop_bits": 1
+  },
+  "measurements": [
+    {
+      "key": "temperature",
+      "display_name": "온도",
+      "unit": "degC",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 0, "length": 1 },
+      "scale": 0.1, "min": -40, "max": 85,
+      "visualization": "line_chart",
+      "display_group": "environment",
+      "order": 1
+    },
+    {
+      "key": "humidity",
+      "display_name": "습도",
+      "unit": "%",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 1, "length": 1 },
+      "scale": 0.1, "min": 0, "max": 100,
+      "visualization": "gauge",
+      "display_group": "environment",
+      "order": 2
+    }
+  ]
+}

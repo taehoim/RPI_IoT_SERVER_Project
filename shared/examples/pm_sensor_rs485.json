@@ -1,0 +1,39 @@
+{
+  "name": "RS485 미세먼지 센서 (PM10 + PM2.5)",
+  "vendor": "Generic",
+  "model": "PM-RS485-01",
+  "description": "분리형 모듈 구성 시 사용. Plantower PMS5003 / Sensirion SPS30의 RS485 변환 모듈 호환.",
+  "protocol": "modbus_rtu",
+  "interface_type": "rs485",
+  "default_polling_interval_sec": 10,
+  "connection": {
+    "baudrate": 9600,
+    "parity": "N",
+    "data_bits": 8,
+    "stop_bits": 1
+  },
+  "measurements": [
+    {
+      "key": "pm10",
+      "display_name": "미세먼지 PM10",
+      "unit": "ug/m3",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 0, "length": 1 },
+      "scale": 1.0, "min": 0, "max": 1000,
+      "visualization": "gauge",
+      "display_group": "air_quality",
+      "order": 1
+    },
+    {
+      "key": "pm2_5",
+      "display_name": "미세먼지 PM2.5",
+      "unit": "ug/m3",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 1, "length": 1 },
+      "scale": 1.0, "min": 0, "max": 1000,
+      "visualization": "gauge",
+      "display_group": "air_quality",
+      "order": 2
+    }
+  ]
+}

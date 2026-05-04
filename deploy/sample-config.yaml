@@ -1,0 +1,118 @@
+# IoT Gateway Agent — Phase 0 sample config (유기보호소 환경 모니터링)
+# 6 측정값: 온도(℃) · 습도(%) · PM10(㎍/㎥) · PM2.5(㎍/㎥) · NH3(ppm) · CO2(ppm)
+#
+# 두 가지 구성 패턴 중 하나 선택:
+#   A. 6-in-1 통합 모듈 (한 슬레이브에 6개 register 모두) — 권장 (배선·BOM 단순)
+#   B. 분리형 모듈 4개 (TH + PM + NH3 + CO2) — 모듈 다양화 / 부분 교체 용이
+#
+# 본 파일은 A 패턴 기본. B 패턴은 아래 주석 해제로 전환.
+
+gateway:
+  id: GW-DEV01
+  name: "유기보호소 #1 환경 모니터"
+  heartbeat_sec: 30
+  local_ready_timeout: 30
+
+mqtt:
+  broker: tcp://127.0.0.1:1883
+  client_id: gateway-dev01
+  keepalive_sec: 30
+  connect_timeout_sec: 10
+  qos: 1
+  clean_session: false
+
+storage:
+  db_path: /var/lib/iot-gateway/local.db
+  retention_days: 7
+  max_queue_rows: 100000
+  disk_usage_warn_pct: 90
+
+watchdog:
+  sd_notify_interval_sec: 10
+  kernel_wdt_enabled: true
+  kernel_wdt_timeout_sec: 15
+  kernel_wdt_kick_sec: 5
+
+# ============================================================
+# A) 6-in-1 통합 모듈 — 권장 (단일 RS485 슬레이브)
+# ============================================================
+sensors:
+  - channel_id: env-01
+    display_name: "보호소 환경 통합 센서 (6-in-1)"
+    profile_file: /opt/iot-gateway/share/profiles/livestock_6in1_rs485.json
+    interface: /dev/ttyUSB0
+    baud: 9600
+    parity: "N"
+    data_bits: 8
+    stop_bits: 1
+    slave_id: 1
+    polling_interval_sec: 10
+    enabled: true
+
+  # ============================================================
+  # B) 분리형 모듈 4개 (한 RS485 버스에 다중 슬레이브)
+  # ============================================================
+  # - channel_id: th-01
+  #   display_name: "온습도 센서"
+  #   profile_file: /opt/iot-gateway/share/profiles/temp_humidity_rs485.json
+  #   interface: /dev/ttyUSB0
+  #   baud: 9600
+  #   parity: "N"
+  #   data_bits: 8
+  #   stop_bits: 1
+  #   slave_id: 1
+  #   polling_interval_sec: 10
+  #   enabled: true
+  #
+  # - channel_id: pm-01
+  #   display_name: "미세먼지 센서 (PM10/PM2.5)"
+  #   profile_file: /opt/iot-gateway/share/profiles/pm_sensor_rs485.json
+  #   interface: /dev/ttyUSB0
+  #   baud: 9600
+  #   parity: "N"
+  #   data_bits: 8
+  #   stop_bits: 1
+  #   slave_id: 2
+  #   polling_interval_sec: 10
+  #   enabled: true
+  #
+  # - channel_id: nh3-01
+  #   display_name: "NH3 가스 센서"
+  #   profile_file: /opt/iot-gateway/share/profiles/nh3_rs485.json
+  #   interface: /dev/ttyUSB0
+  #   baud: 9600
+  #   parity: "N"
+  #   data_bits: 8
+  #   stop_bits: 1
+  #   slave_id: 3
+  #   polling_interval_sec: 10
+  #   enabled: true
+  #
+  # - channel_id: co2-01
+  #   display_name: "CO2 센서"
+  #   profile_file: /opt/iot-gateway/share/profiles/co2_rs485.json
+  #   interface: /dev/ttyUSB0
+  #   baud: 9600
+  #   parity: "N"
+  #   data_bits: 8
+  #   stop_bits: 1
+  #   slave_id: 4
+  #   polling_interval_sec: 10
+  #   enabled: true
+
+actuators:
+  - channel_id: relay-vent
+    display_name: "환기팬"
+    type: relay
+    gpio_pin: 17                        # BCM 17
+    default_state: "off"
+    max_on_duration_sec: 600            # 10분 후 강제 OFF
+    enabled: true
+
+  - channel_id: relay-spray
+    display_name: "살균 분무기"
+    type: relay
+    gpio_pin: 27                        # BCM 27
+    default_state: "off"
+    max_on_duration_sec: 60             # 1분 후 강제 OFF (안전)
+    enabled: true

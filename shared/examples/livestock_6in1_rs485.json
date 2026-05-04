@@ -1,0 +1,101 @@
+{
+  "name": "유기보호소 6-in-1 환경/가스 센서 (RS485 Modbus RTU)",
+  "vendor": "Generic",
+  "model": "LIVESTOCK-6IN1-RS485-01",
+  "description": "축사·유기보호소용 통합 환경 모니터링 모듈. 한 슬레이브에 6개 measurement (온도, 습도, PM10, PM2.5, NH3, CO2). Winsen / Sonbest / Renke 계열 호환. function code 0x03, slave default 1.",
+  "protocol": "modbus_rtu",
+  "interface_type": "rs485",
+  "default_polling_interval_sec": 10,
+  "connection": {
+    "baudrate": 9600,
+    "parity": "N",
+    "data_bits": 8,
+    "stop_bits": 1
+  },
+  "measurements": [
+    {
+      "key": "temperature",
+      "display_name": "온도",
+      "unit": "degC",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 0, "length": 1 },
+      "scale": 0.1,
+      "offset": 0,
+      "min": -40,
+      "max": 80,
+      "visualization": "line_chart",
+      "display_group": "environment",
+      "order": 1
+    },
+    {
+      "key": "humidity",
+      "display_name": "습도",
+      "unit": "%",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 1, "length": 1 },
+      "scale": 0.1,
+      "offset": 0,
+      "min": 0,
+      "max": 100,
+      "visualization": "gauge",
+      "display_group": "environment",
+      "order": 2
+    },
+    {
+      "key": "pm10",
+      "display_name": "미세먼지 PM10",
+      "unit": "ug/m3",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 2, "length": 1 },
+      "scale": 1.0,
+      "offset": 0,
+      "min": 0,
+      "max": 1000,
+      "visualization": "gauge",
+      "display_group": "air_quality",
+      "order": 3
+    },
+    {
+      "key": "pm2_5",
+      "display_name": "미세먼지 PM2.5",
+      "unit": "ug/m3",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 3, "length": 1 },
+      "scale": 1.0,
+      "offset": 0,
+      "min": 0,
+      "max": 1000,
+      "visualization": "gauge",
+      "display_group": "air_quality",
+      "order": 4
+    },
+    {
+      "key": "ammonia",
+      "display_name": "암모니아 NH3",
+      "unit": "ppm",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 4, "length": 1 },
+      "scale": 0.1,
+      "offset": 0,
+      "min": 0,
+      "max": 100,
+      "visualization": "gauge",
+      "display_group": "hazardous_gas",
+      "order": 5
+    },
+    {
+      "key": "carbon_dioxide",
+      "display_name": "이산화탄소 CO2",
+      "unit": "ppm",
+      "data_type": "float",
+      "modbus": { "function_code": 3, "register": 5, "length": 1 },
+      "scale": 1.0,
+      "offset": 0,
+      "min": 0,
+      "max": 5000,
+      "visualization": "line_chart",
+      "display_group": "air_quality",
+      "order": 6
+    }
+  ]
+}

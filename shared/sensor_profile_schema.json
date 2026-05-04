@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://iot-gateway/schemas/sensor_profile.v1.json",
+  "title": "Sensor Profile",
+  "description": "센서 모델 정의. server↔gateway 공유 SoT. 한 profile은 여러 Sensor Channel(인스턴스)에서 재사용.",
+  "type": "object",
+  "required": ["name", "protocol", "measurements"],
+  "additionalProperties": false,
+  "properties": {
+    "name":   { "type": "string", "minLength": 1 },
+    "vendor": { "type": "string" },
+    "model":  { "type": "string" },
+    "description": { "type": "string" },
+    "protocol": {
+      "type": "string",
+      "enum": ["modbus_rtu", "modbus_tcp", "i2c", "spi", "uart", "analog", "digital"]
+    },
+    "interface_type": {
+      "type": "string",
+      "enum": ["rs485", "rs232", "i2c", "spi", "uart", "analog_input", "digital_input"]
+    },
+    "default_polling_interval_sec": { "type": "integer", "minimum": 1, "maximum": 3600 },
+    "connection": {
+      "type": "object",
+      "description": "프로토콜별 default 통신 설정 (channel에서 override 가능)",
+      "additionalProperties": true
+    },
+    "measurements": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/measurement" }
+    }
+  },
+  "definitions": {
+    "measurement": {
+      "type": "object",
+      "required": ["key", "unit", "data_type"],
+      "additionalProperties": false,
+      "properties": {
+        "key":           { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "display_name":  { "type": "string" },
+        "unit":          { "type": "string" },
+        "data_type": {
+          "type": "string",
+          "enum": ["int", "uint", "float", "bool", "string"]
+        },
+        "modbus": { "$ref": "#/definitions/modbus_spec" },
+        "scale":  { "type": "number", "default": 1.0 },
+        "offset": { "type": "number", "default": 0 },
+        "min":    { "type": "number" },
+        "max":    { "type": "number" },
+        "visualization": {
+          "type": "string",
+          "enum": ["line_chart", "gauge", "current_value", "toggle", "status_card", "map", "tilt_view"]
+        },
+        "display_group": { "type": "string" },
+        "order":         { "type": "integer" }
+      }
+    },
+    "modbus_spec": {
+      "type": "object",
+      "required": ["function_code", "register", "length"],
+      "additionalProperties": false,
+      "properties": {
+        "function_code": { "type": "integer", "enum": [3, 4] },
+        "register":      { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "length":        { "type": "integer", "minimum": 1, "maximum": 125 },
+        "endianness": {
+          "type": "string",
+          "enum": ["big", "little"],
+          "default": "big"
+        }
+      }
+    }
+  }
+}

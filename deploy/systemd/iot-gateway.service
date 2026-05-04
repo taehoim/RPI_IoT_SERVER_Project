@@ -1,0 +1,41 @@
+[Unit]
+Description=IoT Gateway Agent (Phase 0 — Pi 4)
+Documentation=file:///opt/iot-gateway/docs/PHASE0_RUNBOOK.md
+After=network-online.target mosquitto.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=iot
+Group=iot
+# watchdog 그룹은 /dev/watchdog 접근에 필수 (kernel WDT 가동).
+SupplementaryGroups=dialout gpio watchdog
+
+WorkingDirectory=/opt/iot-gateway
+Environment=LD_LIBRARY_PATH=/usr/local/lib
+ExecStart=/opt/iot-gateway/bin/gateway-agent --config /etc/iot-gateway/config.yaml
+
+# IRON RULE: 30초 hang → SIGABRT → 자동 재시작
+WatchdogSec=30
+Restart=always
+RestartSec=5
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+# 보안 + 자원 제한
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/iot-gateway /var/log/iot-gateway
+
+LimitNOFILE=4096
+MemoryMax=512M
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=iot-gateway
+
+[Install]
+WantedBy=multi-user.target

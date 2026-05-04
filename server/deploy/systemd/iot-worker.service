@@ -1,0 +1,34 @@
+[Unit]
+Description=IoT Gateway MQTT Worker (telemetry ingestion)
+After=network-online.target postgresql.service vernemq.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=iot
+Group=iot
+WorkingDirectory=/opt/iot-platform/server
+EnvironmentFile=/etc/iot-platform/worker.env
+ExecStart=/opt/iot-platform/server/.venv/bin/iot-worker
+
+WatchdogSec=30
+TimeoutStartSec=90
+Restart=always
+RestartSec=5
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/iot-platform /var/log/iot-platform
+
+MemoryMax=512M
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=iot-worker
+
+[Install]
+WantedBy=multi-user.target
