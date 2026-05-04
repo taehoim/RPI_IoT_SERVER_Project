@@ -169,8 +169,12 @@ fi
 # server pyproject.toml 기반
 "$SERVER_VENV/bin/pip" install --quiet -e "$REPO_ROOT/server"
 
-# 대체 경로: sdnotify 등 일부 deps는 pyproject에 없으면 명시
-"$SERVER_VENV/bin/pip" install --quiet sdnotify python-jose[cryptography]
+# 대체 경로:
+#   sdnotify: systemd READY/WATCHDOG (pyproject에 없으면 backend가 30초 후 재시작 루프)
+#   python-jose: KC_VERIFY_SIGNATURE=true 시 RS256 verify (sim에서는 false지만 import 안전망)
+#   psycopg2-binary: sim-seed.py가 sync driver 사용 (DB row INSERT 단발성).
+#                    server runtime은 asyncpg 사용 — psycopg2는 시드용 only.
+"$SERVER_VENV/bin/pip" install --quiet sdnotify python-jose[cryptography] psycopg2-binary
 chown -R "$SIM_USER:$SIM_USER" "$SERVER_VENV"
 
 # server.env (backend/worker/scheduler 공통)
