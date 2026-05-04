@@ -216,8 +216,11 @@ SEED_PASSWORD="$PG_PASS" SEED_DB="$PG_DB" SEED_USER="$PG_USER" \
 echo "==> Building gateway-agent (-tags simulation, no cgo)"
 cd "$REPO_ROOT/gateway"
 sudo -u "$SIM_USER" -H GOPATH=/tmp/iotsim-gopath go mod download
+# -buildvcs=false: WSL의 /mnt/d (Windows NTFS via DrvFs)에서 sudo user가 .git 접근 시
+#   "fatal: detected dubious ownership" -> "error obtaining VCS status: exit status 128".
+#   sim 바이너리는 VCS 스탬핑 불필요.
 CGO_ENABLED=0 sudo -u "$SIM_USER" -H GOPATH=/tmp/iotsim-gopath \
-    go build -tags simulation -ldflags "-s -w" \
+    go build -tags simulation -buildvcs=false -ldflags "-s -w" \
     -o "$SIM_PREFIX/bin/gateway-agent-sim" \
     ./cmd/gateway-agent
 chown "$SIM_USER:$SIM_USER" "$SIM_PREFIX/bin/gateway-agent-sim"
