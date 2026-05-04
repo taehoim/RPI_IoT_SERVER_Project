@@ -176,7 +176,8 @@ chown -R "$SIM_USER:$SIM_USER" "$SERVER_VENV"
 # server.env (backend/worker/scheduler 공통)
 cat > "$SIM_ETC/server.env" <<EOF
 DATABASE_URL=postgresql+asyncpg://$PG_USER:$PG_PASS@127.0.0.1:5432/$PG_DB
-ALEMBIC_DATABASE_URL=postgresql://$PG_USER:$PG_PASS@127.0.0.1:5432/$PG_DB
+# ALEMBIC_DATABASE_URL은 별도 변수로 사용 안 함 (env.py가 DATABASE_URL 직접 read).
+# 본 sim 설정은 driver-prefixed URL 통일.
 MQTT_HOST=$MQTT_HOST
 MQTT_PORT=$MQTT_PORT
 MQTT_USERNAME=
@@ -194,10 +195,11 @@ EOF
 chown root:"$SIM_USER" "$SIM_ETC/server.env"
 chmod 640 "$SIM_ETC/server.env"
 
-# alembic upgrade
+# alembic upgrade — env.py가 async (asyncpg) 전용이므로 driver-prefixed URL 필수.
+# postgresql:// (sync, psycopg2) 넘기면 ModuleNotFoundError: No module named 'psycopg2'.
 echo "==> Running alembic migrations (0001 + 0002)"
 cd "$REPO_ROOT/server"
-DATABASE_URL="postgresql://$PG_USER:$PG_PASS@127.0.0.1:5432/$PG_DB" \
+DATABASE_URL="postgresql+asyncpg://$PG_USER:$PG_PASS@127.0.0.1:5432/$PG_DB" \
     "$SERVER_VENV/bin/alembic" upgrade head
 
 # ---------- 6. Seed data: company/site/user/gateway/channels -----------
