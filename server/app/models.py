@@ -26,6 +26,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Identity,
     Integer,
     String,
     Text,
@@ -244,7 +245,11 @@ class Telemetry(Base):
 
     __tablename__ = "telemetry"
 
-    id: Mapped[int] = mapped_column(BigInteger, autoincrement=True)
+    # Identity()는 SQLAlchemy에게 "DB가 값을 채운다"고 명시 → INSERT 시 컬럼 제외 + RETURNING으로 회수.
+    # alembic 0001은 BIGSERIAL로 테이블을 만들어 sequence default가 이미 걸려 있어서
+    # runtime에서는 BIGSERIAL과 IDENTITY가 동등하게 동작.
+    # 미적용 시: id=None이 명시 INSERT되어 NotNullViolationError로 telemetry 처리 100% 실패.
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), autoincrement=True)
     company_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     site_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     gateway_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
