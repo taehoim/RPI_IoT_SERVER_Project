@@ -1135,7 +1135,7 @@ git commit -m "feat(ui): ActuatorToggle with loading state"
 import { useState, useEffect } from 'react'
 import { YStack, XStack, H1, Paragraph, Spinner } from 'tamagui'
 import { SiteSelector, SensorCard, ActuatorToggle } from '@iot/ui'
-import { useDashboard, useCommand, useStream, useApi } from '@iot/api'
+import { useDashboard, useCommand, useApi } from '@iot/api'
 
 export function DashboardScreen() {
   const api = useApi()
@@ -1525,7 +1525,7 @@ git commit -m "feat(mobile): Expo SDK 51 + expo-router + Tamagui scaffold"
 
 **Step 1: 모바일용 DashboardScreen 작성**
 
-웹 버전과 거의 동일하지만 SSE를 react-native-sse로 교체.
+웹 버전과 거의 동일. SSE 없음 — useDashboard가 5초 polling (refetchInterval). react-native-sse 의존성 불필요.
 
 `apps/mobile/app/components/DashboardScreen.native.tsx`:
 
@@ -1535,25 +1535,6 @@ import { ScrollView } from 'react-native'
 import { YStack, XStack, H1, Paragraph, Spinner } from 'tamagui'
 import { SiteSelector, SensorCard, ActuatorToggle } from '@iot/ui'
 import { useDashboard, useCommand, useApi } from '@iot/api'
-import EventSource from 'react-native-sse'
-import { useQueryClient } from '@tanstack/react-query'
-import * as SecureStore from 'expo-secure-store'
-
-function useStreamNative(gatewayId: string | null) {
-  const qc = useQueryClient()
-  useEffect(() => {
-    if (!gatewayId) return
-    const token = SecureStore.getItem('jwt') ?? ''
-    const baseUrl = process.env.EXPO_PUBLIC_API_URL || ''
-    const es = new EventSource(
-      `${baseUrl}/api/stream?gateway_id=${gatewayId}&token=${token}`
-    )
-    es.addEventListener('message', () => {
-      qc.invalidateQueries({ queryKey: ['dashboard', gatewayId] })
-    })
-    return () => es.close()
-  }, [gatewayId, qc])
-}
 
 export function DashboardScreen() {
   const api = useApi()
@@ -1569,7 +1550,6 @@ export function DashboardScreen() {
 
   const { data, isLoading } = useDashboard(selected)
   const { mutate: sendCmd, isPending } = useCommand(selected ?? '')
-  useStreamNative(selected)
 
   if (isLoading || !data) return <Spinner />
 
