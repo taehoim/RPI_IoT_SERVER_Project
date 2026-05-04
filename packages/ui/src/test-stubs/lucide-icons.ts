@@ -10,6 +10,7 @@ const Stub = (props: Record<string, unknown>) =>
 
 export const ChevronDown = Stub
 export const Check = Stub
+export const Power = Stub
 
 // Catch-all proxy so any other icon name resolves to the stub component.
 export default new Proxy(

@@ -23,6 +23,7 @@ export {
 // Components
 export { SiteSelector, type SiteSelectorProps, type GatewayOption } from './components/SiteSelector'
 export { SensorCard, type SensorCardProps, type SensorStatus } from './components/SensorCard'
+export { ActuatorToggle, type ActuatorToggleProps, type ActuatorState } from './components/ActuatorToggle'
 
 // Project config + tokens
 export { config } from '../tamagui.config'
