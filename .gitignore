@@ -66,6 +66,10 @@ build/
 *.tsbuildinfo
 .turbo/
 
+# Next.js + Tamagui build artifacts
+apps/web/.tamagui/
+apps/web/public/tamagui.css
+
 # Local Claude / agent settings (per-machine, not part of project)
 .claude/
 

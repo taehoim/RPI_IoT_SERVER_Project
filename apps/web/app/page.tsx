@@ -1,3 +1,5 @@
+'use client'
+
 import { YStack, H1, Paragraph } from '@iot/ui'
 
 export default function Home() {
