@@ -20,6 +20,9 @@ export {
   Select,
 } from 'tamagui'
 
+// Components
+export { SiteSelector, type SiteSelectorProps, type GatewayOption } from './components/SiteSelector'
+
 // Project config + tokens
 export { config } from '../tamagui.config'
 export { tokens } from './tokens'
