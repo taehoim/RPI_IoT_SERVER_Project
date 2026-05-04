@@ -1,0 +1,28 @@
+{
+  "name": "@iot/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@iot/ui": "workspace:*",
+    "@iot/api": "workspace:*",
+    "@tanstack/react-query": "^5.51.0",
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tamagui": "1.108.4",
+    "@tamagui/next-plugin": "1.108.4",
+    "recharts": "^2.12.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.5.0"
+  }
+}
