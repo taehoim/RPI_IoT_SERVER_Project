@@ -15,6 +15,7 @@ from app.routers import (
     actuator_channels,
     commands,
     companies,
+    dashboard,
     gateways,
     health,
     sensor_channels,
@@ -77,6 +78,7 @@ app.include_router(sensor_channels.router, prefix="/api")
 app.include_router(actuator_channels.router, prefix="/api")
 app.include_router(commands.router, prefix="/api")
 app.include_router(telemetry.router, prefix="/api")
+app.include_router(dashboard.router, prefix="/api")
 
 
 def run() -> None:
