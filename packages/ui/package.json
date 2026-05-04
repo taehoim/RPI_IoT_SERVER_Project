@@ -4,12 +4,17 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "tamagui": "^1.108.0",
-    "@tamagui/config": "^1.108.0",
-    "@tamagui/lucide-icons": "^1.108.0"
+    "tamagui": "1.108.4",
+    "@tamagui/config": "1.108.4",
+    "@tamagui/lucide-icons": "1.108.4"
   },
   "peerDependencies": {
     "react": "^18.0.0",
     "react-native": ">=0.74"
+  },
+  "peerDependenciesMeta": {
+    "react-native": {
+      "optional": true
+    }
   }
 }

@@ -2,12 +2,23 @@ import { createTamagui } from 'tamagui'
 import { config as defaultConfig } from '@tamagui/config/v3'
 import { tokens } from './src/tokens'
 
+// Spread defaultConfig fully, then override only what we need.
+// Without this, `themes: { light, dark }` would wipe v3's default light_alt1, dark_accent, etc.
 export const config = createTamagui({
   ...defaultConfig,
   tokens,
   themes: {
-    light: { background: tokens.color.cardBg, color: tokens.color.text },
-    dark: { background: '#000000', color: tokens.color.textDark },
+    ...defaultConfig.themes,
+    light: {
+      ...defaultConfig.themes.light,
+      background: tokens.color.cardBg,
+      color: tokens.color.text,
+    },
+    dark: {
+      ...defaultConfig.themes.dark,
+      background: '#000000',
+      color: tokens.color.textDark,
+    },
   },
 })
 
