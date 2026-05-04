@@ -104,16 +104,26 @@ install -d -o "$SIM_USER" -g "$SIM_USER" -m 750 "$SIM_LIB" "$SIM_LOG"
 
 # ---------- 3. mosquitto (loopback only) -----------
 echo "==> Configuring mosquitto (loopback only — sim mode anonymous OK)"
+# 주의: Ubuntu 24.04 mosquitto 2.0.18 기본 /etc/mosquitto/mosquitto.conf 가 이미
+#   persistence true + persistence_location /var/lib/mosquitto/ + log_dest file ...
+# 을 선언하므로 conf.d에서 중복 선언하면 "Duplicate persistence_location value" 에러.
+# 따라서 listener / allow_anonymous / log_dest 만 추가 (log_dest는 추가 가능).
+# WSL은 rsyslog 미설치 기본이라 syslog 대신 stderr (journald가 캡처).
 cat > /etc/mosquitto/conf.d/iot-sim.conf <<EOF
+# IoT sim — loopback only listener. anonymous는 127.0.0.1 한정이므로 LAN 노출 없음.
 listener 1883 127.0.0.1
 allow_anonymous true
-persistence true
-persistence_location /var/lib/mosquitto/
-log_dest syslog
+log_dest stderr
 EOF
-systemctl enable --now mosquitto
+systemctl reset-failed mosquitto 2>/dev/null || true
+systemctl enable mosquitto
 systemctl restart mosquitto
 sleep 1
+if ! systemctl is-active --quiet mosquitto; then
+    echo "ERROR: mosquitto failed to start. Diagnostics:" >&2
+    sudo -u mosquitto /usr/sbin/mosquitto -c /etc/mosquitto/mosquitto.conf 2>&1 | head -10 >&2
+    exit 1
+fi
 
 # ---------- 4. PostgreSQL — DB + user + reset 옵션 -----------
 echo "==> Configuring PostgreSQL"
