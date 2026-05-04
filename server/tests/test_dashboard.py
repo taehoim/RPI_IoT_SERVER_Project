@@ -7,14 +7,6 @@ from datetime import UTC, datetime
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.compiler import compiles
-
-
-# JSONB doesn't exist in SQLite — render as JSON (TEXT) for tests only.
-@compiles(JSONB, "sqlite")
-def _compile_jsonb_sqlite(element, compiler, **kw):  # noqa: ARG001
-    return "JSON"
 
 
 async def _setup_db_and_seed(gateway_id: uuid.UUID, with_telemetry: bool = True):
@@ -202,7 +194,12 @@ async def test_dashboard_empty_when_no_telemetry():
         )
 
     assert resp.status_code == 200
-    assert resp.json()["sensors"] == []
+    body = resp.json()
+    assert body["sensors"] == []
+    assert len(body["actuators"]) == 1, "actuator should still be present even with no telemetry"
+    assert body["actuators"][0]["slug"] == "relay-vent"
+    assert body["last_seen"] is not None, "gateway last_seen_at should be populated from seed"
+    assert body["gateway"]["serial_number"] == "GW-TEST"
 
 
 @pytest.mark.asyncio

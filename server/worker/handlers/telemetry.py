@@ -116,11 +116,3 @@ async def handle(session: AsyncSession, gateway_id: uuid.UUID, body: dict) -> No
 
     await session.commit()
     log.debug("telemetry stored", gateway_id=str(gateway_id), count=inserted)
-
-    # Notify SSE subscribers (best-effort, non-blocking)
-    try:
-        from app.routers.dashboard import notify_telemetry
-
-        await notify_telemetry(str(gateway_id))
-    except Exception:  # noqa: BLE001 — SSE is non-critical
-        pass

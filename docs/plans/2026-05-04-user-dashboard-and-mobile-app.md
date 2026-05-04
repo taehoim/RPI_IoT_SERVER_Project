@@ -492,6 +492,8 @@ git commit -m "feat(api): TanStack Query hooks + JWT-aware fetch client"
 
 ### Task 4: 백엔드에 `/api/dashboard` + `/api/stream` endpoint 추가
 
+> **Note (post-review):** SSE was removed — see commit log for `feat(server): replace SSE with client polling`. Real-time updates handled by TanStack Query `refetchInterval: 5_000`. Phase 2 will add MQTT-bridge SSE properly.
+
 **Files:**
 - Create: `server/app/routers/dashboard.py`
 - Modify: `server/app/main.py` — router 등록
@@ -1149,7 +1151,7 @@ export function DashboardScreen() {
 
   const { data, isLoading } = useDashboard(selected)
   const { mutate: sendCmd, isPending } = useCommand(selected ?? '')
-  useStream(selected, () => localStorage.getItem('jwt'))
+  // useStream removed — useDashboard polls every 5s via refetchInterval
 
   if (isLoading || !data) return <Spinner />
 
