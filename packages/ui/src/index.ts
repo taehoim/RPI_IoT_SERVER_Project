@@ -22,6 +22,7 @@ export {
 
 // Components
 export { SiteSelector, type SiteSelectorProps, type GatewayOption } from './components/SiteSelector'
+export { SensorCard, type SensorCardProps, type SensorStatus } from './components/SensorCard'
 
 // Project config + tokens
 export { config } from '../tamagui.config'
