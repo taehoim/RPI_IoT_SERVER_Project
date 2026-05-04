@@ -56,6 +56,16 @@ venv/
 .ruff_cache/
 *.egg-info/
 
+# Node / pnpm / Next / Expo (monorepo apps + packages)
+node_modules/
+.next/
+.expo/
+.expo-shared/
+dist/
+build/
+*.tsbuildinfo
+.turbo/
+
 # Local Claude / agent settings (per-machine, not part of project)
 .claude/
 
