@@ -14,13 +14,14 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user
 from app.db import get_session
-from app.models import ActuatorChannel, Gateway, SensorChannel, TelemetryLatest, User
+from app.models import ActuatorChannel, SensorChannel, TelemetryLatest, User
+from app.routers.gateways import _check_perm
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -34,8 +35,11 @@ _THRESHOLDS: dict[str, tuple[float, float]] = {
 
 
 def _classify(value: float | None, key: str) -> str:
+    # Dead/missing sensor must NOT show as 'ok' — the green badge would mask a
+    # real fault. Frontend filters null values out of display, but the status
+    # field is the single source of truth if that filter is ever removed.
     if value is None:
-        return "ok"
+        return "unknown"
     warn, danger = _THRESHOLDS.get(key, (float("inf"), float("inf")))
     if value >= danger:
         return "danger"
@@ -55,9 +59,10 @@ async def get_dashboard(
     user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    gw = await session.get(Gateway, gateway_id)
-    if not gw:
-        raise HTTPException(404, "gateway not found")
+    # Tenancy guard — _check_perm raises 404 if gateway missing or 403 if the
+    # caller has no UserGatewayPermission row. Without this any authenticated
+    # user could enumerate every gateway by UUID.
+    gw = await _check_perm(session, user, gateway_id, required="view")
 
     # Channel display names
     ch_rows = await session.execute(

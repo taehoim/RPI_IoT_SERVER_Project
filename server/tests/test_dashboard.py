@@ -9,11 +9,17 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 
-async def _setup_db_and_seed(gateway_id: uuid.UUID, with_telemetry: bool = True):
+async def _setup_db_and_seed(
+    gateway_id: uuid.UUID,
+    with_telemetry: bool = True,
+    grant_permission: bool = True,
+):
     """Create tables, insert a company + gateway + 1 sensor channel + 1 telemetry_latest row.
 
     Also inserts a User matching the sub claim used by `_bearer_headers()` so that
-    `get_current_user` resolves successfully.
+    `get_current_user` resolves successfully, and (by default) a
+    UserGatewayPermission row so the dashboard endpoint's `_check_perm` passes.
+    Pass `grant_permission=False` to test the IDOR-blocked path.
 
     Returns the (company_id, sensor_channel_id) for assertions.
     """
@@ -30,6 +36,7 @@ async def _setup_db_and_seed(gateway_id: uuid.UUID, with_telemetry: bool = True)
         SensorProfile,
         TelemetryLatest,
         User,
+        UserGatewayPermission,
     )
 
     # Build a SQLite-compatible engine and inject it as the module-level
@@ -52,17 +59,26 @@ async def _setup_db_and_seed(gateway_id: uuid.UUID, with_telemetry: bool = True)
     company_id = uuid.uuid4()
     profile_id = uuid.uuid4()
     sensor_ch_id = uuid.uuid4()
+    user_id = uuid.uuid4()
 
     async with Session() as s:
         s.add(Company(id=company_id, name="Test Co", company_type="management"))
         s.add(
             User(
-                id=uuid.uuid4(),
+                id=user_id,
                 keycloak_user_id="test-user",
                 email="test@local",
                 name="T",
             )
         )
+        if grant_permission:
+            s.add(
+                UserGatewayPermission(
+                    user_id=user_id,
+                    gateway_id=gateway_id,
+                    permission="view",
+                )
+            )
         s.add(
             SensorProfile(
                 id=profile_id,
@@ -224,7 +240,29 @@ async def test_classify_thresholds():
     from app.routers.dashboard import _classify
 
     assert _classify(22.0, "temperature_c") == "ok"
+    assert _classify(28.0, "temperature_c") == "warn"  # exact warn threshold
     assert _classify(30.0, "temperature_c") == "warn"
+    assert _classify(35.0, "temperature_c") == "danger"  # exact danger threshold
     assert _classify(40.0, "temperature_c") == "danger"
-    assert _classify(None, "temperature_c") == "ok"
+    # None must NOT be 'ok' — a dead sensor would silently render green.
+    assert _classify(None, "temperature_c") == "unknown"
     assert _classify(99999.0, "unknown_key") == "ok"  # no threshold = always ok
+
+
+@pytest.mark.asyncio
+async def test_dashboard_403_when_user_lacks_permission():
+    """IDOR regression: a valid JWT for a user without a UserGatewayPermission
+    row for the requested gateway must NOT receive dashboard data."""
+    from app.main import app
+
+    gw_id = uuid.uuid4()
+    await _setup_db_and_seed(gw_id, with_telemetry=True, grant_permission=False)
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get(
+            f"/api/dashboard?gateway_id={gw_id}",
+            headers=_bearer_headers(),
+        )
+    # _check_perm raises 403 when no permission row matches.
+    assert resp.status_code == 403, resp.text
