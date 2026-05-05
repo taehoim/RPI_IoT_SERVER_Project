@@ -91,6 +91,31 @@ else
     fail "last_seen_at stale: ${LAST_SEEN:-N/A}s ago"
 fi
 
+# ----- 6. Web dashboard via nginx -----
+step "6. nginx → web (Next standalone) 응답"
+HTTP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1/ 2>/dev/null || echo "000")
+if [[ "$HTTP_STATUS" == "200" || "$HTTP_STATUS" == "307" || "$HTTP_STATUS" == "308" ]]; then
+    ok "nginx serves web at / (HTTP $HTTP_STATUS)"
+else
+    fail "nginx /: expected 200/307/308, got $HTTP_STATUS"
+fi
+
+# ----- 7. nginx → /api/dashboard reachable (auth-required → 401) -----
+step "7. nginx → /api/dashboard proxy 도달"
+GW_UUID=$(PGPASSWORD="$PG_PASS" psql -h 127.0.0.1 -U iot_sim -d iot_sim -tAc \
+    "SELECT id FROM gateways WHERE serial_number = '$GW_SERIAL';" 2>/dev/null | tr -d ' ')
+if [[ -n "$GW_UUID" ]]; then
+    API_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
+        "http://127.0.0.1/api/dashboard?gateway_id=$GW_UUID" 2>/dev/null || echo "000")
+    if [[ "$API_STATUS" == "401" || "$API_STATUS" == "200" ]]; then
+        ok "/api/dashboard reachable through nginx (HTTP $API_STATUS)"
+    else
+        fail "/api/dashboard via nginx: expected 401/200, got $API_STATUS"
+    fi
+else
+    fail "gateway UUID lookup failed"
+fi
+
 # ----- 결과 -----
 echo ""
 echo "=================================================="

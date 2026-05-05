@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ScrollView } from 'react-native'
-import { YStack, XStack, H1, Paragraph, Spinner } from 'tamagui'
+import { Link } from 'expo-router'
+import { YStack, XStack, H1, Paragraph, Spinner, Button } from 'tamagui'
 import { SiteSelector, SensorCard, ActuatorToggle } from '@iot/ui'
 import { useDashboard, useCommand, useApi, type Gateway } from '@iot/api'
 
@@ -47,6 +48,10 @@ export function DashboardScreen() {
           마지막 업데이트:{' '}
           {data.last_seen ? new Date(data.last_seen).toLocaleTimeString() : '없음'}
         </Paragraph>
+
+        <Link href="/trends" asChild>
+          <Button>최근 측정값 보기</Button>
+        </Link>
 
         <Paragraph fontWeight="700" size="$5">센서</Paragraph>
         <XStack flexWrap="wrap" gap="$3">

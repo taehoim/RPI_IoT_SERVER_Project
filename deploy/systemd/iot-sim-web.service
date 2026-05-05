@@ -1,0 +1,21 @@
+[Unit]
+Description=IoT Sim Web Dashboard (Next.js standalone)
+After=network.target iot-sim-backend.service
+Wants=iot-sim-backend.service
+
+[Service]
+Type=simple
+User=iotsim
+Group=iotsim
+WorkingDirectory=/opt/iot-sim/web
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
