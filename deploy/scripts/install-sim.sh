@@ -395,16 +395,45 @@ fi
 apt-get install -y nginx
 npm install -g pnpm@9 >/dev/null
 
+# WSL drvfs (/mnt/c, /mnt/d) blocks atomic file rename even as root, breaking
+# pnpm's tmp_*-then-rename pattern. Detect early and tell the user to move.
+case "$REPO_ROOT" in
+    /mnt/*)
+        echo "ERROR: $REPO_ROOT is on WSL drvfs (NTFS-backed). pnpm install will fail" >&2
+        echo "       with EACCES on rename. Move the repo to a Linux ext4 path:" >&2
+        echo "         rsync -a --exclude=node_modules --exclude=.next $REPO_ROOT/ ~/iot-gateway/" >&2
+        echo "         cd ~/iot-gateway && sudo bash deploy/scripts/install-sim.sh" >&2
+        exit 1
+        ;;
+esac
+
+# iotsim user must be able to traverse $REPO_ROOT's parents to read package.json,
+# go.mod, etc. Default Ubuntu /home/$user is 750 which blocks 'others'. Relax to 755.
+HOME_PARENT=$(dirname "$REPO_ROOT")
+while [ "$HOME_PARENT" != "/" ]; do
+    if [ "$(stat -c '%a' "$HOME_PARENT")" = "700" ] || [ "$(stat -c '%a' "$HOME_PARENT")" = "750" ]; then
+        echo "==> Relaxing $HOME_PARENT perms to 755 so iotsim can traverse"
+        chmod 755 "$HOME_PARENT"
+    fi
+    [ "$HOME_PARENT" = "/home" ] && break
+    HOME_PARENT=$(dirname "$HOME_PARENT")
+done
+
 echo "==> Building web app (apps/web → standalone)"
 cd "$REPO_ROOT"
 sudo -u "$SIM_USER" -H pnpm install --frozen-lockfile=false || pnpm install --frozen-lockfile=false
 pnpm --filter @iot/web build
 
+# Next standalone in pnpm monorepo nests under apps/web/. server.js +
+# .next/server/ live at .next/standalone/apps/web/, NOT at root of standalone.
+# .next/static is NOT included in standalone — must be copied manually next to
+# the nested .next/ directory (see https://nextjs.org/docs/app/api-reference/next-config-js/output)
 WEB_PREFIX="$SIM_PREFIX/web"
-install -d -o "$SIM_USER" -g "$SIM_USER" -m 755 "$WEB_PREFIX" "$WEB_PREFIX/.next"
+install -d -o "$SIM_USER" -g "$SIM_USER" -m 755 "$WEB_PREFIX"
 cp -r apps/web/.next/standalone/. "$WEB_PREFIX/"
-cp -r apps/web/.next/static "$WEB_PREFIX/.next/static"
-[ -d apps/web/public ] && cp -r apps/web/public "$WEB_PREFIX/public" || true
+mkdir -p "$WEB_PREFIX/apps/web/.next"
+cp -r apps/web/.next/static "$WEB_PREFIX/apps/web/.next/static"
+[ -d apps/web/public ] && cp -r apps/web/public "$WEB_PREFIX/apps/web/public" || true
 chown -R "$SIM_USER:$SIM_USER" "$WEB_PREFIX"
 
 install -m 644 "$REPO_ROOT/deploy/systemd/iot-sim-web.service" /etc/systemd/system/iot-sim-web.service
