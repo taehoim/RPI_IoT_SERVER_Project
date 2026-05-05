@@ -4,6 +4,7 @@ const STATUS_COLOR = {
   ok: '#34C759',
   warn: '#FF9500',
   danger: '#FF3B30',
+  unknown: '#8E8E93',
 } as const
 
 export type SensorStatus = keyof typeof STATUS_COLOR

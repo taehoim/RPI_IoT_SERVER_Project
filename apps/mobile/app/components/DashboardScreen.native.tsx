@@ -10,13 +10,24 @@ export function DashboardScreen() {
   const [gateways, setGateways] = useState<{ id: string; name: string }[]>([])
   const [selected, setSelected] = useState<string | null>(null)
 
+  const [loadError, setLoadError] = useState<string | null>(null)
+
   useEffect(() => {
     let cancelled = false
-    api.get<Gateway[]>('/api/gateways').then((list) => {
-      if (cancelled) return
-      setGateways(list.map((g) => ({ id: g.id, name: g.name || g.serial_number })))
-      if (list[0]) setSelected(list[0].id)
-    })
+    api
+      .get<Gateway[]>('/api/gateways')
+      .then((list) => {
+        if (cancelled) return
+        setLoadError(null)
+        setGateways(list.map((g) => ({ id: g.id, name: g.name || g.serial_number })))
+        if (list[0]) setSelected(list[0].id)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        // Without this, the spinner spins forever on a 401/network error.
+        console.error('Failed to load gateways', err)
+        setLoadError(err instanceof Error ? err.message : 'gateway 목록 로딩 실패')
+      })
     return () => {
       cancelled = true
     }
@@ -24,6 +35,15 @@ export function DashboardScreen() {
 
   const { data, isLoading } = useDashboard(selected)
   const { mutate: sendCmd, isPending } = useCommand(selected ?? '')
+
+  if (loadError) {
+    return (
+      <YStack flex={1} alignItems="center" justifyContent="center" gap="$2" padding="$4">
+        <Paragraph color="$red10">⚠ {loadError}</Paragraph>
+        <Paragraph theme="alt2" size="$2">JWT가 만료됐다면 /login에서 재발급</Paragraph>
+      </YStack>
+    )
+  }
 
   if (!selected || isLoading || !data) {
     return (

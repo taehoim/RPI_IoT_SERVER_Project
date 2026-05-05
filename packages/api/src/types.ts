@@ -10,10 +10,12 @@ export interface SensorReading {
   channel_id: string
   channel_name: string
   measurement_key: string
-  value: number
+  // Backend returns null when value_double is missing (sensor offline,
+  // never reported). Consumers must narrow before use.
+  value: number | null
   unit: string
   ts: string
-  status: 'ok' | 'warn' | 'danger'
+  status: 'ok' | 'warn' | 'danger' | 'unknown'
 }
 
 export interface ActuatorChannel {

@@ -9,5 +9,10 @@ export function useCommand(gatewayId: string) {
     mutationFn: (payload: CommandPayload) =>
       api.post(`/api/gateways/${gatewayId}/commands`, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['dashboard', gatewayId] }),
+    // IoT command failures (relay stuck, MQTT timeout) must not be silent.
+    // Surface to console at minimum; UI surfaces should consume `mutation.error`.
+    onError: (err) => {
+      console.error('Command failed', err)
+    },
   })
 }
