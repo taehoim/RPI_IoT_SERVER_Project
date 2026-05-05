@@ -23,6 +23,7 @@ export default function TrendsPage() {
   const api = useApi()
   const [series, setSeries] = useState<Record<string, TrendPoint[]>>({})
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const gatewayId = localStorage.getItem('selectedGateway')
@@ -46,7 +47,16 @@ export default function TrendsPage() {
           }),
       ),
     )
-      .then((pairs) => setSeries(Object.fromEntries(pairs)))
+      .then((pairs) => {
+        setError(null)
+        setSeries(Object.fromEntries(pairs))
+      })
+      .catch((err) => {
+        // Without this, a 401/network error would render every series as
+        // "데이터 없음", indistinguishable from a gateway with no readings.
+        console.error('Telemetry range fetch failed', err)
+        setError(err instanceof Error ? err.message : '추세 데이터 로딩 실패')
+      })
       .finally(() => setLoading(false))
   }, [api])
 
@@ -54,6 +64,15 @@ export default function TrendsPage() {
     return (
       <YStack padding="$6" alignItems="center">
         <Spinner />
+      </YStack>
+    )
+  }
+
+  if (error) {
+    return (
+      <YStack padding="$6" alignItems="center" gap="$2">
+        <Paragraph color="$red10">⚠ {error}</Paragraph>
+        <Paragraph theme="alt2" size="$2">JWT가 만료됐다면 /login에서 재발급</Paragraph>
       </YStack>
     )
   }
