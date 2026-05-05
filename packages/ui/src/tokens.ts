@@ -1,23 +1,26 @@
-import { tokens as base } from '@tamagui/config/v3'
+// Tamagui v3 token additions must be wrapped in createTokens / createToken
+// (Variable instances), not raw strings. Spreading raw hex strings into
+// `tokens.color` makes createCSSVariable crash on undefined.length at build
+// time.
+//
+// For now we re-export the v3 base tokens unchanged and keep Apple Home
+// constants as plain JS exports — components import them directly via
+// inline style or the STATUS_COLOR map.
+//
+// To re-introduce these as Tamagui tokens, use createToken:
+//   const cardBg = createToken('#FFFFFF', { name: 'cardBg' })
+//   export const tokens = createTokens({ ...base, color: { ...base.color, cardBg } })
+export { tokens } from '@tamagui/config/v3'
 
-export const tokens = {
-  ...base,
-  color: {
-    ...base.color,
-    statusOk: '#34C759',       // green — 정상
-    statusWarn: '#FF9500',     // orange — 주의
-    statusDanger: '#FF3B30',   // red — 위험
-    statusActive: '#007AFF',   // blue — 액티브
-    cardBg: '#FFFFFF',
-    cardBgDark: '#1C1C1E',
-    text: '#000000',
-    textDark: '#FFFFFF',
-    textMuted: '#8E8E93',
-  },
-  size: {
-    ...base.size,
-    cardRadius: 16,
-    cardPad: 20,
-    iconLarge: 48,
-  },
-}
+export const APPLE_HOME = {
+  statusOk: '#34C759',
+  statusWarn: '#FF9500',
+  statusDanger: '#FF3B30',
+  statusActive: '#007AFF',
+  statusUnknown: '#8E8E93',
+  cardBg: '#FFFFFF',
+  cardBgDark: '#1C1C1E',
+  text: '#000000',
+  textDark: '#FFFFFF',
+  textMuted: '#8E8E93',
+} as const
