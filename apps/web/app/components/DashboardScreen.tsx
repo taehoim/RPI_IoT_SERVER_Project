@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { YStack, XStack, H1, Paragraph, Spinner } from 'tamagui'
 import { SiteSelector, SensorCard, ActuatorToggle } from '@iot/ui'
 import { useDashboard, useCommand, useApi, type Gateway } from '@iot/api'
@@ -21,6 +22,10 @@ export function DashboardScreen() {
       cancelled = true
     }
   }, [api])
+
+  useEffect(() => {
+    if (selected) localStorage.setItem('selectedGateway', selected)
+  }, [selected])
 
   const { data, isLoading } = useDashboard(selected)
   const { mutate: sendCmd, isPending } = useCommand(selected ?? '')
@@ -50,10 +55,15 @@ export function DashboardScreen() {
         />
       </XStack>
 
-      <Paragraph theme="alt2">
-        마지막 업데이트:{' '}
-        {data.last_seen ? new Date(data.last_seen).toLocaleTimeString() : '없음'}
-      </Paragraph>
+      <XStack justifyContent="space-between" alignItems="center">
+        <Paragraph theme="alt2">
+          마지막 업데이트:{' '}
+          {data.last_seen ? new Date(data.last_seen).toLocaleTimeString() : '없음'}
+        </Paragraph>
+        <Link href="/trends" style={{ color: '#007AFF', textDecoration: 'none' }}>
+          → 24h 추세 보기
+        </Link>
+      </XStack>
 
       <YStack gap="$3">
         <Paragraph fontWeight="700" size="$5">
