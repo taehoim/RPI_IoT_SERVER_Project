@@ -12,3 +12,13 @@ import os
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 os.environ.setdefault("KC_VERIFY_SIGNATURE", "false")
 os.environ.setdefault("MQTT_HOST", "127.0.0.1")
+
+# SQLite test compatibility — JSONB columns serialize to JSON text.
+# Production PostgreSQL is unaffected (this only fires for dialect='sqlite').
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.compiler import compiles
+
+
+@compiles(JSONB, "sqlite")
+def _compile_jsonb_sqlite(element, compiler, **kw):  # noqa: ARG001
+    return "JSON"

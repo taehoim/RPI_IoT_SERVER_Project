@@ -31,12 +31,14 @@ CM4(eMMC, 권장) 또는 Pi 4(microSD) + USB-RS485 + 릴레이 모듈 1개로 �
 ### 옵션 A — **하드웨어 없이 시뮬레이션** (Ubuntu 22.04/24.04 한 대에서 전체 wire 흐름 검증)
 
 ```bash
-sudo bash deploy/scripts/install-sim.sh        # 5-10분 — mosquitto + postgres + 서버 + sim gateway
-sudo bash deploy/scripts/sim-verify.sh         # 5단계 자동 검증 (PASS/FAIL)
+sudo bash deploy/scripts/install-sim.sh        # 5-15분 — mosquitto + postgres + 서버 + sim gateway + web (nginx)
+sudo bash deploy/scripts/sim-verify.sh         # 7단계 자동 검증 (PASS/FAIL)
 mosquitto_sub -h 127.0.0.1 -t 'gw/+/#' -v      # 합성 telemetry 실시간 관찰
 ```
 
-상세: `docs/SIMULATION_GUIDE.md`.
+브라우저에서 `http://localhost/` → `/login` → `sudo /opt/iot-sim/bin/sim-fake-jwt` 출력 붙여넣기 → Apple Home 톤 대시보드.
+
+상세: `docs/SIMULATION_GUIDE.md`, `docs/USER_DASHBOARD_GUIDE.md`.
 
 ### 옵션 B — 실 라즈베리파이/CM4 + 센서 (Phase 0 production validation)
 

@@ -386,6 +386,41 @@ sleep 2
 systemctl restart iot-sim-worker iot-sim-scheduler iot-sim-gateway
 sleep 2
 
+# ---------- 8b. Web dashboard (Next.js standalone) + nginx -----------
+echo "==> Installing Node 20, pnpm, and nginx for web dashboard"
+if ! command -v node >/dev/null 2>&1 || [ "$(node -v 2>/dev/null | sed 's/^v\([0-9]*\).*/\1/')" -lt 20 ]; then
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y nodejs
+fi
+apt-get install -y nginx
+npm install -g pnpm@9 >/dev/null
+
+echo "==> Building web app (apps/web → standalone)"
+cd "$REPO_ROOT"
+sudo -u "$SIM_USER" -H pnpm install --frozen-lockfile=false || pnpm install --frozen-lockfile=false
+pnpm --filter @iot/web build
+
+WEB_PREFIX="$SIM_PREFIX/web"
+install -d -o "$SIM_USER" -g "$SIM_USER" -m 755 "$WEB_PREFIX" "$WEB_PREFIX/.next"
+cp -r apps/web/.next/standalone/. "$WEB_PREFIX/"
+cp -r apps/web/.next/static "$WEB_PREFIX/.next/static"
+[ -d apps/web/public ] && cp -r apps/web/public "$WEB_PREFIX/public" || true
+chown -R "$SIM_USER:$SIM_USER" "$WEB_PREFIX"
+
+install -m 644 "$REPO_ROOT/deploy/systemd/iot-sim-web.service" /etc/systemd/system/iot-sim-web.service
+
+echo "==> Configuring nginx (port 80 → web on :3000, /api → backend on :8000)"
+install -m 644 "$REPO_ROOT/deploy/nginx/iot-sim.conf" /etc/nginx/sites-available/iot-sim
+ln -sf /etc/nginx/sites-available/iot-sim /etc/nginx/sites-enabled/iot-sim
+rm -f /etc/nginx/sites-enabled/default
+nginx -t
+systemctl reload nginx || systemctl restart nginx
+
+systemctl daemon-reload
+systemctl enable iot-sim-web
+systemctl restart iot-sim-web
+sleep 2
+
 # ---------- 9. Fake JWT helper script -----------
 echo "==> Installing JWT helper for API testing"
 install -m 755 "$REPO_ROOT/deploy/scripts/sim-fake-jwt.py" "$SIM_PREFIX/bin/sim-fake-jwt"
@@ -397,7 +432,7 @@ echo "  ✅ Installation complete"
 echo "=================================================="
 echo ""
 echo "Services:"
-for svc in postgresql mosquitto iot-sim-backend iot-sim-worker iot-sim-scheduler iot-sim-gateway; do
+for svc in postgresql mosquitto nginx iot-sim-backend iot-sim-worker iot-sim-scheduler iot-sim-gateway iot-sim-web; do
     state=$(systemctl is-active "$svc" 2>/dev/null || echo "FAIL")
     echo "  $svc: $state"
 done

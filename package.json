@@ -1,0 +1,16 @@
+{
+  "name": "iot-gateway-server-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @iot/web dev",
+    "dev:mobile": "pnpm --filter @iot/mobile start",
+    "build:web": "pnpm --filter @iot/web build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

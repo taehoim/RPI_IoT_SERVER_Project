@@ -56,6 +56,20 @@ venv/
 .ruff_cache/
 *.egg-info/
 
+# Node / pnpm / Next / Expo (monorepo apps + packages)
+node_modules/
+.next/
+.expo/
+.expo-shared/
+dist/
+build/
+*.tsbuildinfo
+.turbo/
+
+# Next.js + Tamagui build artifacts
+apps/web/.tamagui/
+apps/web/public/tamagui.css
+
 # Local Claude / agent settings (per-machine, not part of project)
 .claude/
 
