@@ -7,6 +7,7 @@ export default function Trends() {
   const api = useApi()
   const [latest, setLatest] = useState<DashboardData['sensors']>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -19,7 +20,14 @@ export default function Trends() {
       if (cancelled) return
       setLatest(data.sensors)
       setLoading(false)
-    })().catch(() => setLoading(false))
+    })().catch((err) => {
+      if (cancelled) return
+      // Without preserving the error, the screen would render an empty
+      // list with no signal to the operator that the fetch failed.
+      console.error('Trends fetch failed', err)
+      setError(err instanceof Error ? err.message : '추세 데이터 로딩 실패')
+      setLoading(false)
+    })
     return () => {
       cancelled = true
     }
@@ -29,6 +37,15 @@ export default function Trends() {
     return (
       <YStack flex={1} alignItems="center" justifyContent="center">
         <Spinner />
+      </YStack>
+    )
+  }
+
+  if (error) {
+    return (
+      <YStack flex={1} alignItems="center" justifyContent="center" gap="$2" padding="$4">
+        <Paragraph color="$red10">⚠ {error}</Paragraph>
+        <Paragraph theme="alt2" size="$2">JWT가 만료됐다면 /login에서 재발급</Paragraph>
       </YStack>
     )
   }
