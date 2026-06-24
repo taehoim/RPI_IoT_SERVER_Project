@@ -1,38 +1,11 @@
-import { useState, useEffect } from 'react'
 import { ScrollView } from 'react-native'
 import { Link } from 'expo-router'
 import { YStack, XStack, H1, Paragraph, Spinner, Button } from 'tamagui'
 import { SiteSelector, SensorCard, ActuatorToggle } from '@iot/ui'
-import { useDashboard, useCommand, useApi, type Gateway } from '@iot/api'
+import { useDashboard, useCommand, useGateways } from '@iot/api'
 
 export function DashboardScreen() {
-  const api = useApi()
-  const [gateways, setGateways] = useState<{ id: string; name: string }[]>([])
-  const [selected, setSelected] = useState<string | null>(null)
-
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    api
-      .get<Gateway[]>('/api/gateways')
-      .then((list) => {
-        if (cancelled) return
-        setLoadError(null)
-        setGateways(list.map((g) => ({ id: g.id, name: g.name || g.serial_number })))
-        if (list[0]) setSelected(list[0].id)
-      })
-      .catch((err) => {
-        if (cancelled) return
-        // Without this, the spinner spins forever on a 401/network error.
-        console.error('Failed to load gateways', err)
-        setLoadError(err instanceof Error ? err.message : 'gateway 목록 로딩 실패')
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [api])
-
+  const { gateways, selected, setSelected, error: loadError } = useGateways()
   const { data, isLoading } = useDashboard(selected)
   const { mutate: sendCmd, isPending } = useCommand(selected ?? '')
 
@@ -53,7 +26,7 @@ export function DashboardScreen() {
     )
   }
 
-  // Backend can return null sensor values; SensorCard expects number.
+  // Coercing null to 0 would corrupt threshold classification — skip instead.
   const numericSensors = data.sensors.filter(
     (s): s is typeof s & { value: number } => typeof s.value === 'number',
   )
