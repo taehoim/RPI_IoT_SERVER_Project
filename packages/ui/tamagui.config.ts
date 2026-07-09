@@ -2,24 +2,18 @@ import { createTamagui } from 'tamagui'
 import { config as defaultConfig } from '@tamagui/config/v3'
 import { tokens } from './src/tokens'
 
-// Spread defaultConfig fully, then override only what we need.
-// Without this, `themes: { light, dark }` would wipe v3's default light_alt1, dark_accent, etc.
+// Use v3 default themes verbatim. We previously overrode `themes.light` /
+// `themes.dark` with plain hex strings (`tokens.color.cardBg = '#FFFFFF'`),
+// but v3 themes expect Variable objects produced by createToken — mixing
+// raw strings broke createCSSVariable at build time.
+//
+// Apple Home palette lives in `tokens.color.*` (statusOk/Warn/Danger/cardBg
+// etc) and components reference them by name (e.g., `backgroundColor="$cardBg"`).
+// To customize the global background/foreground later, use createToken-based
+// variables and assign them to the theme.
 export const config = createTamagui({
   ...defaultConfig,
   tokens,
-  themes: {
-    ...defaultConfig.themes,
-    light: {
-      ...defaultConfig.themes.light,
-      background: tokens.color.cardBg,
-      color: tokens.color.text,
-    },
-    dark: {
-      ...defaultConfig.themes.dark,
-      background: '#000000',
-      color: tokens.color.textDark,
-    },
-  },
 })
 
 export type AppConfig = typeof config

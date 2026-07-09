@@ -1,22 +1,26 @@
 const path = require('path')
-const { withTamagui } = require('@tamagui/next-plugin')
 
-module.exports = withTamagui({
-  config: '../../packages/ui/tamagui.config.ts',
-  components: ['tamagui', '@iot/ui'],
-  appDir: true,
-  outputCSS: process.env.NODE_ENV === 'production' ? './public/tamagui.css' : null,
-})({
+// Tamagui Next plugin (withTamagui) is intentionally NOT used here.
+// Static extraction triggers Tamagui's createTamagui at build time, which
+// requires single-instance @tamagui/web — pnpm monorepos duplicate it
+// across packages/ui + apps/web even with shamefully-hoist. Until that
+// dedup is solved (likely via pnpm overrides or tamagui-loader injection),
+// this app uses plain HTML/CSS components in apps/web/app/*.tsx and skips
+// withTamagui entirely.
+module.exports = {
   reactStrictMode: true,
-  transpilePackages: ['@iot/ui', '@iot/api', 'tamagui', '@tamagui/lucide-icons', 'react-native-svg'],
+  // @iot/api still has TS source; @iot/ui is unused at runtime here.
+  transpilePackages: ['@iot/api'],
   output: 'standalone',
   webpack: (config) => {
-    // @react-native/assets-registry contains Flow syntax that SWC can't strip.
-    // It's only used by react-native-svg's native asset path; on web we stub it.
-    config.resolve.alias['@react-native/assets-registry/registry'] = path.resolve(
-      __dirname,
-      'src/stubs/assets-registry.js',
-    )
+    // Stub left in case future dependencies pull react-native-svg again.
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@react-native/assets-registry/registry': path.resolve(
+        __dirname,
+        'src/stubs/assets-registry.js',
+      ),
+    }
     return config
   },
-})
+}

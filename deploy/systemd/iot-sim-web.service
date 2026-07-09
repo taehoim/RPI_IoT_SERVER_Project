@@ -7,7 +7,9 @@ Wants=iot-sim-backend.service
 Type=simple
 User=iotsim
 Group=iotsim
-WorkingDirectory=/opt/iot-sim/web
+# Next standalone in pnpm monorepo nests under apps/web/. server.js + .next/
+# live at /opt/iot-sim/web/apps/web/, NOT directly at /opt/iot-sim/web/.
+WorkingDirectory=/opt/iot-sim/web/apps/web
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=HOSTNAME=127.0.0.1

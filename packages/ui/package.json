@@ -7,14 +7,12 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "dependencies": {
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-native": ">=0.74",
     "tamagui": "1.108.4",
     "@tamagui/config": "1.108.4",
     "@tamagui/lucide-icons": "1.108.4"
-  },
-  "peerDependencies": {
-    "react": "^18.0.0",
-    "react-native": ">=0.74"
   },
   "peerDependenciesMeta": {
     "react-native": {
@@ -31,6 +29,9 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native-svg": "^15.0.0",
+    "tamagui": "1.108.4",
+    "@tamagui/config": "1.108.4",
+    "@tamagui/lucide-icons": "1.108.4",
     "typescript": "^5.5.0",
     "vitest": "^2.0.0"
   }

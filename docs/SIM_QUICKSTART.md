@@ -41,6 +41,16 @@ git checkout feat/user-dashboard-mobile-app
 git pull origin feat/user-dashboard-mobile-app
 ```
 
+> **WSL 사용자 주의:** 워크스페이스가 `/mnt/c/` 또는 `/mnt/d/` 같은 Windows
+> 마운트 경로면 pnpm install이 `EACCES` 에러로 실패합니다 (drvfs는 root의
+> atomic rename도 차단). install-sim.sh가 자동 감지해 중단시킵니다. 다음으로 이동:
+>
+> ```bash
+> rsync -a --exclude=node_modules --exclude=.next \
+>   /mnt/d/20_claude/IoT_Gateway_Server/ ~/iot-gateway/
+> cd ~/iot-gateway
+> ```
+
 (선택) PR #2 + #3 + #4까지 통합 머지 시뮬레이션:
 
 ```bash
